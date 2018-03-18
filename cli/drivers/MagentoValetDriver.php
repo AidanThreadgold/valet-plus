@@ -12,13 +12,27 @@ class MagentoValetDriver extends BasicValetDriver
      */
     public function serves($sitePath, $siteName, $uri)
     {
+        $sitePath = $this->mapSitePath($sitePath);
         return is_dir($sitePath.'/app/code/core/Mage');
+    }
+
+    /**
+     * Checks sitempath to check if codebase is in ./ or ./public/
+     * @param  string $sitePath
+     * @return string
+     */
+    private function mapSitePath($sitePath)
+    {
+        if(is_dir($sitePath.'/public/app/code/core/Mage')) {
+          return $sitePath . "/public";
+        }
+        return $sitePath;
     }
 
     public function configure($devtools, $url) {
         info('Configuring Magento...');
 
-        $sitePath = getcwd();
+        $sitePath = $this->mapSitePath(getcwd());
 
         if(!file_exists($sitePath.'/app/etc/local.xml')) {
             info('local.xml missing. Installing default local.xml...');

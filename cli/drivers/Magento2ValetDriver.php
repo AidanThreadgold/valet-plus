@@ -40,7 +40,20 @@ class Magento2ValetDriver extends ValetDriver
 
         info('Configured Magento 2');
     }
-
+    
+    /**
+     * Checks sitempath to check if codebase is in ./ or ./public/
+     * @param  string $sitePath
+     * @return string
+     */
+    private function mapSitePath($sitePath)
+    {
+        if(is_dir($sitePath.'/public/pub/index.php')) {
+          return $sitePath . "/public";
+        }
+        return $sitePath;
+    }
+    
     /**
      * Determine if the driver serves the request.
      *
@@ -51,19 +64,23 @@ class Magento2ValetDriver extends ValetDriver
      */
     public function serves($sitePath, $siteName, $uri)
     {
+        $sitePath = $this->mapSitePath($sitePath);
         return file_exists($sitePath . '/pub/index.php') &&
             file_exists($sitePath . '/bin/magento');
     }
 
     public function envExists($sitePath) {
+        $sitePath = $this->mapSitePath($sitePath);
         return file_exists($sitePath.'/app/etc/env.php');
     }
 
     public function moduleConfigExists($sitePath) {
+        $sitePath = $this->mapSitePath($sitePath);
         return file_exists($sitePath.'/app/etc/config.php');
     }
 
     public function installed($sitePath) {
+        $sitePath = $this->mapSitePath($sitePath);
         return $this->envExists($sitePath) && $this->moduleConfigExists($sitePath);
     }
 
@@ -79,6 +96,7 @@ class Magento2ValetDriver extends ValetDriver
     {
         $isMagentoStatic = false;
         $resource = $uri;
+        $sitePath = $this->mapSitePath($sitePath);
 
         if(strpos($uri,'/pub') === 0 && file_exists($sitePath.'/setup'.$uri)) {
             return $sitePath.'/setup'.$uri;
@@ -139,6 +157,8 @@ class Magento2ValetDriver extends ValetDriver
             die;
         }
 
+        $sitePath = $this->mapSitePath($sitePath);
+        
         if(strpos($uri, '/setup') === 0) {
             $_SERVER['SCRIPT_FILENAME'] = $sitePath.'/setup/index.php';
             $_SERVER['SCRIPT_NAME'] = '/index.php';
